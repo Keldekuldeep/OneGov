@@ -223,10 +223,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License.
 
-## 👨‍💻 Author
+## 👨‍💻 Developed By
 
-**Kuldeep**
+**Team CodeSphere**
 - GitHub: [@Keldekuldeep](https://github.com/Keldekuldeep)
+- Email: support@onegov.in
 
 ## 🙏 Acknowledgments
 
@@ -238,8 +239,8 @@ This project is licensed under the MIT License.
 
 ## 📞 Support
 
-For support, email keldekuldeep@github.com or open an issue on GitHub.
+For support, email support@onegov.in or open an issue on GitHub.
 
 ---
 
-Made with ❤️ for Digital India 🇮🇳
+Made with ❤️ by Team CodeSphere for Digital India 🇮🇳
