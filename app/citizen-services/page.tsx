@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Header from "../../components/Header"
 import Footer from "../../components/Footer"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
-import { Heart, GraduationCap, Landmark, Car, Zap, Shield, ChevronRight } from 'lucide-react'
+import { Heart, GraduationCap, Landmark, Car, Zap, Shield, ChevronRight, CreditCard } from 'lucide-react'
 import { isCitizenLoggedIn } from '@/lib/citizenAuth'
 
 export default function CitizenServices() {
@@ -136,8 +136,55 @@ export default function CitizenServices() {
               )
             })}
           </div>
+
+          {/* Bill Payment Card */}
+          <div className="max-w-7xl mx-auto mt-8">
+            <Card className="border-2 hover:border-blue-200 hover:shadow-xl transition-all duration-300">
+              <CardHeader className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                    <CreditCard size={28} strokeWidth={2} />
+                  </div>
+                  <CardTitle className="text-xl font-semibold text-gray-900">Bill Payment सहायता</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  <li>
+                    <a 
+                      href="/bill-payment"
+                      className="flex items-center justify-between text-gray-700 hover:text-blue-600 transition-colors py-2 px-3 rounded-lg hover:bg-blue-50 group"
+                    >
+                      <span className="text-sm font-medium">Electricity Bill Payment</span>
+                      <ChevronRight size={16} className="text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                    </a>
+                  </li>
+                  <li>
+                    <a 
+                      href="/bill-payment"
+                      className="flex items-center justify-between text-gray-700 hover:text-blue-600 transition-colors py-2 px-3 rounded-lg hover:bg-blue-50 group"
+                    >
+                      <span className="text-sm font-medium">Water Bill Payment</span>
+                      <ChevronRight size={16} className="text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                    </a>
+                  </li>
+                  <li>
+                    <a 
+                      href="/bill-payment"
+                      className="flex items-center justify-between text-gray-700 hover:text-blue-600 transition-colors py-2 px-3 rounded-lg hover:bg-blue-50 group"
+                    >
+                      <span className="text-sm font-medium">Gas Bill Payment</span>
+                      <ChevronRight size={16} className="text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                    </a>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
+
+      {/* AI Helper is now global - available on all pages */}
 
       <Footer />
     </main>
