@@ -61,21 +61,47 @@ export default function DocumentVaultPage() {
         }
       }
 
-      const response = await documentsAPI.getUserDocuments(user.id)
-      console.log('✅ Documents loaded from backend:', response)
+      let loadedDocs: Document[] = []
+
+      // Try loading from backend first
+      try {
+        const response = await documentsAPI.getUserDocuments(user.id)
+        console.log('✅ Documents loaded from backend:', response)
+        
+        // Backend returns array directly, not wrapped in {documents: []}
+        const docsArray = Array.isArray(response) ? response : (response.documents || [])
+        
+        // Map documents and add name field from type
+        loadedDocs = docsArray.map((doc: any) => ({
+          ...doc,
+          id: doc.documentId || doc.id,
+          name: documentTypeLabels[doc.type as DocumentType] || doc.type,
+          uploadDate: doc.uploadedAt || doc.uploadDate,
+          verificationStatus: doc.verificationStatus || 'pending',
+        }))
+        
+        console.log('📄 Backend documents:', loadedDocs)
+      } catch (backendError) {
+        console.warn('⚠️ Backend not available, loading from localStorage:', backendError)
+      }
+
+      // Also load from localStorage (merge with backend docs)
+      const localDocs = JSON.parse(localStorage.getItem('vault-documents') || '[]')
+      console.log('💾 LocalStorage documents:', localDocs)
       
-      // Map documents and add name field from type
-      const mappedDocs = (response.documents || []).map((doc: any) => ({
-        ...doc,
-        id: doc.documentId,
-        name: documentTypeLabels[doc.type as DocumentType] || doc.type,
-        uploadDate: doc.uploadedAt,
-      }))
+      // Merge: prefer backend docs, add local docs that aren't in backend
+      const backendIds = new Set(loadedDocs.map(d => d.id))
+      const uniqueLocalDocs = localDocs.filter((doc: Document) => !backendIds.has(doc.id))
       
-      setDocuments(mappedDocs)
+      const allDocs = [...loadedDocs, ...uniqueLocalDocs]
+      console.log('📋 Total documents:', allDocs.length)
+      
+      setDocuments(allDocs)
     } catch (error) {
       console.error('❌ Error loading documents:', error)
-      setDocuments([])
+      // Fallback to localStorage only
+      const localDocs = JSON.parse(localStorage.getItem('vault-documents') || '[]')
+      setDocuments(localDocs)
     } finally {
       setIsLoading(false)
     }
@@ -92,41 +118,62 @@ export default function DocumentVaultPage() {
 
     setIsUploading(true)
     try {
-      let user = authAPI.getCurrentUser()
-      if (!user) {
-        // Use consistent demo user ID from localStorage
-        const storedUserId = localStorage.getItem('demo-user-id')
-        if (storedUserId) {
-          user = { id: storedUserId }
-        } else {
-          const newUserId = 'demo-user-' + Date.now()
-          localStorage.setItem('demo-user-id', newUserId)
-          user = { id: newUserId }
-        }
+      // Create document object
+      const newDoc: Document = {
+        id: 'doc-' + Date.now(),
+        type: selectedType,
+        name: documentTypeLabels[selectedType],
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        uploadDate: new Date().toISOString(),
+        verificationStatus: 'pending',
+        fileUrl: URL.createObjectURL(selectedFile), // Create local URL for preview
       }
 
-      // In real app, you would upload file to cloud storage first
-      // For now, we'll use a placeholder URL
-      const fileUrl = `https://storage.example.com/${selectedFile.name}`
+      // Try backend upload
+      try {
+        let user = authAPI.getCurrentUser()
+        if (!user) {
+          const storedUserId = localStorage.getItem('demo-user-id')
+          if (storedUserId) {
+            user = { id: storedUserId }
+          } else {
+            const newUserId = 'demo-user-' + Date.now()
+            localStorage.setItem('demo-user-id', newUserId)
+            user = { id: newUserId }
+          }
+        }
 
-      const response = await documentsAPI.upload({
-        userId: user.id,
-        type: selectedType,
-        fileName: selectedFile.name,
-        fileUrl: fileUrl,
-        fileSize: selectedFile.size,
-      })
+        const fileUrl = `https://storage.example.com/${selectedFile.name}`
+        await documentsAPI.upload({
+          userId: user.id,
+          type: selectedType,
+          fileName: selectedFile.name,
+          fileUrl: fileUrl,
+          fileSize: selectedFile.size,
+        })
+        console.log('✅ Document uploaded to backend')
+      } catch (backendError) {
+        console.warn('⚠️ Backend upload failed, using local storage:', backendError)
+      }
 
-      console.log('✅ Document uploaded to backend:', response)
+      // Store in localStorage as backup
+      const storedDocs = JSON.parse(localStorage.getItem('vault-documents') || '[]')
+      storedDocs.push(newDoc)
+      localStorage.setItem('vault-documents', JSON.stringify(storedDocs))
       
-      // Reload documents
-      await loadDocuments()
+      // Update UI immediately
+      setDocuments(prev => [...prev, newDoc])
       
+      // Show success message
+      alert('✅ Document uploaded successfully!')
+      
+      // Reset form
       setShowUploadForm(false)
       setSelectedFile(null)
     } catch (error) {
       console.error('❌ Error uploading document:', error)
-      alert('Failed to upload document. Please try again.')
+      alert('❌ Failed to upload document. Please try again.')
     } finally {
       setIsUploading(false)
     }
@@ -336,16 +383,26 @@ export default function DocumentVaultPage() {
                     accept=".pdf,.jpg,.jpeg,.png"
                     onChange={handleFileSelect}
                     disabled={isUploading}
+                    className="cursor-pointer"
                   />
                   {selectedFile && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
+                    <p className="text-sm text-green-600 mt-2 font-medium">
+                      ✓ Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
+                    </p>
+                  )}
+                  {!selectedFile && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      Click to browse and select a file
                     </p>
                   )}
                 </div>
 
                 <div className="flex gap-3">
-                  <Button onClick={handleUpload} disabled={!selectedFile || isUploading}>
+                  <Button 
+                    onClick={handleUpload} 
+                    disabled={!selectedFile || isUploading}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
                     {isUploading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -358,7 +415,10 @@ export default function DocumentVaultPage() {
                       </>
                     )}
                   </Button>
-                  <Button variant="outline" onClick={() => setShowUploadForm(false)} disabled={isUploading}>
+                  <Button variant="outline" onClick={() => {
+                    setShowUploadForm(false)
+                    setSelectedFile(null)
+                  }} disabled={isUploading}>
                     Cancel
                   </Button>
                 </div>

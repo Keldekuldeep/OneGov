@@ -1,17 +1,36 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { Menu, X, Building2, ShieldCheck, Shield, User, LogOut } from 'lucide-react'
+import { Menu, X, Building2, ShieldCheck, Shield, User, LogOut, Globe } from 'lucide-react'
 import { Button } from './ui/button'
 import Link from 'next/link'
 import { isCitizenLoggedIn, getLoggedInCitizen, logoutCitizen } from '@/lib/citizenAuth'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/lib/languageContext'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [citizenName, setCitizenName] = useState('')
+  const [showLanguages, setShowLanguages] = useState(false)
   const router = useRouter()
+  
+  // Try to use language context, fallback to 'en' if not available
+  let language: 'en' | 'hi' = 'en'
+  let setLanguage = (lang: 'en' | 'hi') => {
+    console.log('Language change attempted but no provider:', lang)
+  }
+  let hasLanguageContext = false
+  
+  try {
+    const context = useLanguage()
+    language = context.language
+    setLanguage = context.setLanguage
+    hasLanguageContext = true
+  } catch (e) {
+    // Not in LanguageProvider, hide language selector
+    hasLanguageContext = false
+  }
 
   useEffect(() => {
     setIsLoggedIn(isCitizenLoggedIn())
@@ -26,6 +45,21 @@ export default function Header() {
     setIsLoggedIn(false)
     router.push('/')
   }
+
+  const languages = [
+    { code: 'en', name: 'English', flag: '🇬🇧' },
+    { code: 'hi', name: 'हिंदी', flag: '🇮🇳' },
+    { code: 'ta', name: 'தமிழ்', flag: '🇮🇳', disabled: true },
+    { code: 'te', name: 'తెలుగు', flag: '🇮🇳', disabled: true },
+    { code: 'bn', name: 'বাংলা', flag: '🇮🇳', disabled: true },
+    { code: 'mr', name: 'मराठी', flag: '🇮🇳', disabled: true },
+    { code: 'gu', name: 'ગુજરાતી', flag: '🇮🇳', disabled: true },
+    { code: 'kn', name: 'ಕನ್ನಡ', flag: '🇮🇳', disabled: true },
+    { code: 'ml', name: 'മലയാളം', flag: '🇮🇳', disabled: true },
+    { code: 'pa', name: 'ਪੰਜਾਬੀ', flag: '🇮🇳', disabled: true },
+  ]
+
+  const currentLanguage = languages.find(lang => lang.code === language) || languages[0]
 
   return (
     <header className="bg-[#2c5282] sticky top-0 z-50">
@@ -45,6 +79,52 @@ export default function Header() {
             <a href="/voice-assistant" className="text-white hover:text-gray-200 transition text-sm">Voice</a>
             <a href="/track-application" className="text-white hover:text-gray-200 transition text-sm">Track</a>
             <a href="#contact" className="text-white hover:text-gray-200 transition text-sm">Contact</a>
+            
+            {/* Language Selector - Only show on homepage */}
+            {hasLanguageContext && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowLanguages(!showLanguages)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition text-white"
+                >
+                  <Globe size={16} />
+                  <span className="text-sm font-medium">{currentLanguage.flag} {currentLanguage.name}</span>
+                </button>
+                
+                {showLanguages && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 max-h-64 overflow-y-auto">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          console.log('Language clicked:', lang.code, 'Disabled:', lang.disabled)
+                          if (!lang.disabled) {
+                            if (lang.code === 'en' || lang.code === 'hi') {
+                              setLanguage(lang.code as 'en' | 'hi')
+                              setShowLanguages(false)
+                              console.log('Language changed to:', lang.code)
+                            }
+                          }
+                        }}
+                        disabled={lang.disabled}
+                        className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                          lang.disabled 
+                            ? 'text-gray-400 cursor-not-allowed' 
+                            : language === lang.code
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-700 hover:bg-gray-50 cursor-pointer'
+                        }`}
+                      >
+                        <span>{lang.flag}</span>
+                        <span>{lang.name}</span>
+                        {lang.disabled && <span className="ml-auto text-xs">(Coming Soon)</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex gap-2 items-center">
               {isLoggedIn ? (
                 <>
@@ -82,6 +162,50 @@ export default function Header() {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-2">
+            {/* Language Selector Mobile - Only show on homepage */}
+            {hasLanguageContext && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowLanguages(!showLanguages)}
+                  className="flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white"
+                >
+                  <Globe size={14} />
+                  <span className="text-xs">{currentLanguage.flag}</span>
+                </button>
+                
+                {showLanguages && (
+                  <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-xl border border-gray-200 py-2 max-h-48 overflow-y-auto z-50">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          console.log('Mobile language clicked:', lang.code, 'Disabled:', lang.disabled)
+                          if (!lang.disabled) {
+                            if (lang.code === 'en' || lang.code === 'hi') {
+                              setLanguage(lang.code as 'en' | 'hi')
+                              setShowLanguages(false)
+                              console.log('Mobile language changed to:', lang.code)
+                            }
+                          }
+                        }}
+                        disabled={lang.disabled}
+                        className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 ${
+                          lang.disabled 
+                            ? 'text-gray-400 cursor-not-allowed' 
+                            : language === lang.code
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-700 hover:bg-gray-50 cursor-pointer'
+                        }`}
+                      >
+                        <span>{lang.flag}</span>
+                        <span>{lang.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
             <Link href="/officer/login">
               <Button size="sm" className="bg-white text-blue-900 hover:bg-gray-100 text-xs px-2">
                 <ShieldCheck size={14} />
