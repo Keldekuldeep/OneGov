@@ -1,12 +1,14 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { FileText, Upload, CheckCircle, Clock, XCircle, Trash2, Eye, Plus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { documentsAPI, authAPI } from '@/lib/api'
+import { isCitizenLoggedIn } from '@/lib/citizenAuth'
 import {
   DocumentType,
   documentTypeLabels,
@@ -25,6 +27,7 @@ interface Document {
 }
 
 export default function DocumentVaultPage() {
+  const router = useRouter()
   const [documents, setDocuments] = useState<Document[]>([])
   const [showUploadForm, setShowUploadForm] = useState(false)
   const [selectedType, setSelectedType] = useState<DocumentType>('aadhaar')
@@ -34,9 +37,13 @@ export default function DocumentVaultPage() {
   const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
+    if (!isCitizenLoggedIn()) {
+      router.push('/citizen/login')
+      return
+    }
     setMounted(true)
     loadDocuments()
-  }, [])
+  }, [router])
 
   const loadDocuments = async () => {
     setIsLoading(true)

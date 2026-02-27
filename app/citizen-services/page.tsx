@@ -1,11 +1,21 @@
 "use client"
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Header from "../../components/Header"
 import Footer from "../../components/Footer"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Heart, GraduationCap, Landmark, Car, Zap, Shield, ChevronRight } from 'lucide-react'
+import { isCitizenLoggedIn } from '@/lib/citizenAuth'
 
 export default function CitizenServices() {
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isCitizenLoggedIn()) {
+      router.push('/citizen/login')
+    }
+  }, [router])
   const services = [
     {
       icon: Heart,

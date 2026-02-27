@@ -1,9 +1,15 @@
 package com.onegov.controller;
 
+import com.onegov.dto.request.AdminLoginRequest;
 import com.onegov.dto.request.LoginRequest;
+import com.onegov.dto.request.OfficerLoginRequest;
 import com.onegov.dto.request.RegisterRequest;
+import com.onegov.dto.response.AdminResponse;
 import com.onegov.dto.response.ApiResponse;
 import com.onegov.dto.response.AuthResponse;
+import com.onegov.dto.response.OfficerResponse;
+import com.onegov.model.Admin;
+import com.onegov.model.Officer;
 import com.onegov.model.User;
 import com.onegov.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +77,64 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error("Invalid token"));
+        }
+    }
+
+    // Officer Authentication Endpoints
+    @PostMapping("/officer/login")
+    public ResponseEntity<?> officerLogin(@RequestBody OfficerLoginRequest request) {
+        try {
+            OfficerResponse response = authService.officerLogin(request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (ExecutionException | InterruptedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Login failed"));
+        }
+    }
+
+    @GetMapping("/officer/profile/{officerId}")
+    public ResponseEntity<?> getOfficerProfile(@PathVariable String officerId) {
+        try {
+            Officer officer = authService.getOfficerById(officerId);
+            return ResponseEntity.ok(officer);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (ExecutionException | InterruptedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Failed to fetch profile"));
+        }
+    }
+
+    // Admin Authentication Endpoints
+    @PostMapping("/admin/login")
+    public ResponseEntity<?> adminLogin(@RequestBody AdminLoginRequest request) {
+        try {
+            AdminResponse response = authService.adminLogin(request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (ExecutionException | InterruptedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Login failed"));
+        }
+    }
+
+    @GetMapping("/admin/profile/{adminId}")
+    public ResponseEntity<?> getAdminProfile(@PathVariable String adminId) {
+        try {
+            Admin admin = authService.getAdminById(adminId);
+            return ResponseEntity.ok(admin);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (ExecutionException | InterruptedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Failed to fetch profile"));
         }
     }
 }

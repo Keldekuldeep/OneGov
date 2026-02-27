@@ -84,6 +84,68 @@ export const authAPI = {
     const userStr = localStorage.getItem('user')
     return userStr ? JSON.parse(userStr) : null
   },
+
+  // Officer login
+  officerLogin: async (email: string, password: string) => {
+    const response = await apiCall('/auth/officer/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    })
+    // Save token and officer data
+    if (response.token) {
+      localStorage.setItem('officerToken', response.token)
+      localStorage.setItem('officer', JSON.stringify(response.officer))
+    }
+    return response
+  },
+
+  // Get officer profile
+  getOfficerProfile: async (officerId: string) => {
+    return apiCall(`/auth/officer/profile/${officerId}`)
+  },
+
+  // Officer logout
+  officerLogout: () => {
+    localStorage.removeItem('officerToken')
+    localStorage.removeItem('officer')
+  },
+
+  // Get current officer
+  getCurrentOfficer: () => {
+    const officerStr = localStorage.getItem('officer')
+    return officerStr ? JSON.parse(officerStr) : null
+  },
+
+  // Admin login
+  adminLogin: async (email: string, password: string) => {
+    const response = await apiCall('/auth/admin/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    })
+    // Save token and admin data
+    if (response.token) {
+      localStorage.setItem('adminToken', response.token)
+      localStorage.setItem('admin', JSON.stringify(response.admin))
+    }
+    return response
+  },
+
+  // Get admin profile
+  getAdminProfile: async (adminId: string) => {
+    return apiCall(`/auth/admin/profile/${adminId}`)
+  },
+
+  // Admin logout
+  adminLogout: () => {
+    localStorage.removeItem('adminToken')
+    localStorage.removeItem('admin')
+  },
+
+  // Get current admin
+  getCurrentAdmin: () => {
+    const adminStr = localStorage.getItem('admin')
+    return adminStr ? JSON.parse(adminStr) : null
+  },
 }
 
 // ============================================
@@ -310,7 +372,154 @@ export const complaintsAPI = {
 }
 
 // ============================================
-// 7. TEST API
+// 7. OFFICER PORTAL APIs
+// ============================================
+export const officerAPI = {
+  // Get dashboard statistics
+  getDashboardStats: async (officerId: string) => {
+    return apiCall(`/officer/dashboard/stats?officerId=${officerId}`)
+  },
+
+  // Get all health services
+  getHealthServices: async () => {
+    return apiCall('/officer/health-services')
+  },
+
+  // Update health service status
+  updateHealthServiceStatus: async (serviceId: string, data: {
+    status: string
+    certificateNumber?: string
+    remarks?: string
+  }) => {
+    return apiCall(`/officer/health-services/${serviceId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  },
+
+  // Get all applications
+  getApplications: async () => {
+    return apiCall('/officer/applications')
+  },
+
+  // Update application status
+  updateApplicationStatus: async (applicationId: string, data: {
+    status: string
+    officerName: string
+    remarks?: string
+  }) => {
+    return apiCall(`/officer/applications/${applicationId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  },
+
+  // Get all complaints
+  getComplaints: async () => {
+    return apiCall('/officer/complaints')
+  },
+
+  // Update complaint status
+  updateComplaintStatus: async (complaintId: string, data: {
+    status: string
+    resolution?: string
+    officerName: string
+  }) => {
+    return apiCall(`/officer/complaints/${complaintId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  },
+
+  // Get all documents
+  getDocuments: async () => {
+    return apiCall('/officer/documents')
+  },
+
+  // Verify document
+  verifyDocument: async (documentId: string, data: {
+    verifiedBy: string
+    status: string
+    remarks?: string
+  }) => {
+    return apiCall(`/officer/documents/${documentId}/verify`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  },
+}
+
+// ============================================
+// 8. ADMIN PORTAL APIs
+// ============================================
+export const adminAPI = {
+  // Get system dashboard statistics
+  getSystemStats: async () => {
+    return apiCall('/admin/dashboard/stats')
+  },
+
+  // Officer Management
+  getAllOfficers: async () => {
+    return apiCall('/admin/officers')
+  },
+
+  getOfficerById: async (officerId: string) => {
+    return apiCall(`/admin/officers/${officerId}`)
+  },
+
+  createOfficer: async (data: {
+    name: string
+    email: string
+    password: string
+    phone: string
+    department: string
+    designation: string
+    role: string
+    createdBy: string
+  }) => {
+    return apiCall('/admin/officers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  updateOfficer: async (officerId: string, data: any) => {
+    return apiCall(`/admin/officers/${officerId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  },
+
+  deleteOfficer: async (officerId: string) => {
+    return apiCall(`/admin/officers/${officerId}`, {
+      method: 'DELETE',
+    })
+  },
+
+  // Citizen Management
+  getAllCitizens: async () => {
+    return apiCall('/admin/citizens')
+  },
+
+  updateCitizenStatus: async (userId: string, status: string) => {
+    return apiCall(`/admin/citizens/${userId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    })
+  },
+
+  // Application & Complaint Management
+  getAllApplications: async () => {
+    return apiCall('/admin/applications')
+  },
+
+  getAllComplaints: async () => {
+    return apiCall('/admin/complaints')
+  },
+}
+
+// ============================================
+// 9. TEST API
 // ============================================
 export const testAPI = {
   hello: async () => {

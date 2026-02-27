@@ -1,30 +1,55 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Building2, Globe, MapPin, Activity, ExternalLink } from 'lucide-react'
+import { Building2, Globe, MapPin, Activity, ExternalLink, ShieldCheck, Shield } from 'lucide-react'
+import Link from 'next/link'
 
 const links = [
+  {
+    icon: ShieldCheck,
+    title: 'Officer Portal',
+    description: 'Login for Government Officers',
+    color: 'bg-indigo-50 text-indigo-600',
+    href: '/officer/login',
+    isInternal: true,
+  },
+  {
+    icon: Shield,
+    title: 'Admin Portal',
+    description: 'System Administration',
+    color: 'bg-purple-50 text-purple-600',
+    href: '/admin/login',
+    isInternal: true,
+  },
   {
     icon: Building2,
     title: 'Government Portal',
     description: 'Official Government Website',
     color: 'bg-blue-50 text-blue-600',
+    href: '#',
+    isInternal: false,
   },
   {
     icon: Globe,
     title: 'Digital India',
     description: 'Digital India Initiative',
     color: 'bg-green-50 text-green-600',
+    href: '#',
+    isInternal: false,
   },
   {
     icon: MapPin,
     title: 'e-District',
     description: 'District Administration Services',
     color: 'bg-orange-50 text-orange-600',
+    href: '#',
+    isInternal: false,
   },
   {
     icon: Activity,
     title: 'Health Portal',
     description: 'Latest Health Updates',
-    color: 'bg-purple-50 text-purple-600',
+    color: 'bg-pink-50 text-pink-600',
+    href: '#',
+    isInternal: false,
   },
 ]
 
@@ -39,11 +64,12 @@ export default function QuickLinks() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6 lg:gap-8 max-w-7xl mx-auto">
           {links.map((link, index) => {
             const Icon = link.icon
+            const CardWrapper = link.isInternal ? Link : 'a'
             return (
-              <a key={index} href="#" className="group">
+              <CardWrapper key={index} href={link.href} className="group">
                 <Card className="h-full border-2 hover:border-blue-200 hover:shadow-xl transition-all duration-300">
                   <CardHeader className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -58,7 +84,7 @@ export default function QuickLinks() {
                     <CardDescription className="text-gray-600">{link.description}</CardDescription>
                   </CardContent>
                 </Card>
-              </a>
+              </CardWrapper>
             )
           })}
         </div>
